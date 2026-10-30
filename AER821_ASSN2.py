@@ -63,3 +63,26 @@ def train_sgd(step_size, n_epochs=N_EPOCHS, seed=SEED):
                 break
  
     return w, np.array(w_hist), np.array(train_hist), np.array(valid_hist)
+
+# ----------------------------------------------------------------------------
+# Part (a): step size 1e-6, training and validation MSE for every epoch
+# ----------------------------------------------------------------------------
+w_a, w_hist_a, train_a, valid_a = train_sgd(1e-6)
+print("\nPart (a), step size = 1e-6")
+print(f"  final weights: w0 = {w_a[0]:.4f}, w1 = {w_a[1]:.4f}")
+print(f"  epoch 1:    train MSE = {train_a[0]:.4f}, valid MSE = {valid_a[0]:.4f}")
+print(f"  epoch {N_EPOCHS}: train MSE = {train_a[-1]:.4f}, valid MSE = {valid_a[-1]:.4f}")
+ 
+epochs = np.arange(1, len(train_a) + 1)
+plt.figure(figsize=(7, 4.5))
+plt.plot(epochs, train_a, label="Training MSE")
+plt.plot(epochs, valid_a, "--", label="Validation MSE")
+plt.xlabel("Epoch")
+plt.ylabel("MSE")
+plt.title("Part (a): SGD with step size 1e-6")
+plt.legend()
+plt.grid(alpha=0.3)
+plt.tight_layout()
+plt.savefig(os.path.join(FIG_DIR, "a_mse_step_1e-6.png"), dpi=200)
+plt.show()
+
