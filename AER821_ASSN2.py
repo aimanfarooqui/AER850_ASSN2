@@ -86,3 +86,65 @@ plt.tight_layout()
 plt.savefig(os.path.join(FIG_DIR, "a_mse_step_1e-6.png"), dpi=200)
 plt.show()
 
+# ----------------------------------------------------------------------------
+# Part (b): try different step sizes, pick the best by validation MSE
+# ----------------------------------------------------------------------------
+results = {}
+print("\nPart (b): step size sweep")
+print(f"  {'step size':>10} | {'w0':>8} {'w1':>8} | {'train MSE':>10} {'valid MSE':>10}")
+for lr in STEP_SIZES:
+    w, w_hist, tr, va = train_sgd(lr)
+    results[lr] = (w, w_hist, tr, va)
+    final_va = va[-1]
+    if np.isfinite(final_va):
+        print(f"  {lr:>10.0e} | {w[0]:>8.4f} {w[1]:>8.4f} | {tr[-1]:>10.5f} {final_va:>10.5f}")
+    else:
+        print(f"  {lr:>10.0e} | diverged after {len(va)} epoch(s), weights blew up to infinity")
+ 
+# best = lowest final validation MSE (diverged runs are ignored)
+valid_final = {lr: r[3][-1] for lr, r in results.items() if np.isfinite(r[3][-1])}
+best_lr = min(valid_final, key=valid_final.get)
+w_best = results[best_lr][0]
+test_mse = mse(w_best, x_test, y_test)
+print(f"\n  Best step size: {best_lr:.0e}")
+print(f"  Chosen model: y = {w_best[0]:.4f} + {w_best[1]:.4f} x")
+print(f"  Validation MSE = {valid_final[best_lr]:.5f}")
+print(f"  TEST MSE       = {test_mse:.5f}")
+ 
+# Sanity check: exact least-squares solution (no gradient descent)
+w_exact = np.linalg.lstsq(design_matrix(x_train), y_train, rcond=None)[0]
+print(f"\n  Check, exact least squares: y = {w_exact[0]:.4f} + {w_exact[1]:.4f} x")
+print(f"  valid MSE = {mse(w_exact, x_valid, y_valid):.5f}, "
+      f"test MSE = {mse(w_exact, x_test, y_test):.5f}")
+ 
+# Validation MSE vs epoch for every step size that did not diverge
+plt.figure(figsize=(7, 4.5))
+for lr, (w, w_hist, tr, va) in results.items():
+    if np.all(np.isfinite(va)):
+        plt.plot(np.arange(1, len(va) + 1), va, label=f"step = {lr:.0e}")
+plt.xscale("log")
+plt.yscale("log")
+plt.xlabel("Epoch (log scale)")
+plt.ylabel("Validation MSE (log scale)")
+plt.title("Part (b): validation MSE for different step sizes")
+plt.legend()
+plt.grid(alpha=0.3, which="both")
+plt.tight_layout()
+plt.savefig(os.path.join(FIG_DIR, "b_valid_mse_step_sizes.png"), dpi=200)
+plt.show()
+ 
+# Training + validation MSE for the chosen step size
+_, _, tr_b, va_b = results[best_lr]
+plt.figure(figsize=(7, 4.5))
+plt.plot(np.arange(1, len(tr_b) + 1), tr_b, label="Training MSE")
+plt.plot(np.arange(1, len(va_b) + 1), va_b, "--", label="Validation MSE")
+plt.xscale("log")
+plt.xlabel("Epoch (log scale)")
+plt.ylabel("MSE")
+plt.title(f"Part (b): chosen step size {best_lr:.0e}")
+plt.legend()
+plt.grid(alpha=0.3, which="both")
+plt.tight_layout()
+plt.savefig(os.path.join(FIG_DIR, "b_mse_best_step.png"), dpi=200)
+plt.show()
+ 
