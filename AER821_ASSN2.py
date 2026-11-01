@@ -148,3 +148,64 @@ plt.tight_layout()
 plt.savefig(os.path.join(FIG_DIR, "b_mse_best_step.png"), dpi=200)
 plt.show()
  
+
+# ----------------------------------------------------------------------------
+# Part (c): how the fit evolves during training (chosen step size)
+# ----------------------------------------------------------------------------
+w_hist_best = results[best_lr][1]
+x_line = np.linspace(min(x_train.min(), x_valid.min()),
+                     max(x_train.max(), x_valid.max()), 100)
+ 
+# Optional: one plot for every single epoch
+if SAVE_EVERY_EPOCH_FRAMES:
+    frame_dir = os.path.join(FIG_DIR, "every_epoch")
+    os.makedirs(frame_dir, exist_ok=True)
+    for e, w in enumerate(w_hist_best, start=1):
+        plt.figure(figsize=(5, 4))
+        plt.scatter(x_train, y_train, s=8, alpha=0.5, label="Training data")
+        plt.plot(x_line, w[0] + w[1] * x_line, "r", lw=2, label="Fit")
+        plt.title(f"Epoch {e}")
+        plt.xlabel("x"); plt.ylabel("y"); plt.legend()
+        plt.tight_layout()
+        plt.savefig(os.path.join(frame_dir, f"epoch_{e:04d}.png"), dpi=100)
+        plt.close()
+ 
+# The 5 snapshots for the report
+SNAPSHOT_EPOCHS = [1, 3, 10, 30, N_EPOCHS]
+fig, axes = plt.subplots(2, 3, figsize=(13, 8), sharey=True)
+axes = axes.ravel()
+axes[5].axis("off")    # only 5 snapshots, hide the 6th panel
+for ax, e in zip(axes, SNAPSHOT_EPOCHS):
+    w = w_hist_best[e - 1]
+    ax.scatter(x_train, y_train, s=8, alpha=0.4, label="Training data")
+    ax.plot(x_line, w[0] + w[1] * x_line, "r", lw=2, label="Fit")
+    ax.set_title(f"Epoch {e}\ny = {w[0]:.2f} + {w[1]:.2f}x\n"
+                 f"valid MSE = {mse(w, x_valid, y_valid):.3f}", fontsize=9)
+    ax.set_xlabel("x")
+    ax.grid(alpha=0.3)
+axes[0].set_ylabel("y")
+axes[3].set_ylabel("y")
+axes[0].legend(fontsize=8, loc="upper left")
+plt.tight_layout()
+plt.savefig(os.path.join(FIG_DIR, "c_fit_evolution.png"), dpi=200)
+plt.show()
+ 
+# Same idea with the slow step size from part (a), where the change is gradual
+SNAPSHOT_EPOCHS_A = [1, 10, 100, 300, N_EPOCHS]
+fig, axes = plt.subplots(2, 3, figsize=(13, 8), sharey=True)
+axes = axes.ravel()
+axes[5].axis("off")    # only 5 snapshots, hide the 6th panel
+for ax, e in zip(axes, SNAPSHOT_EPOCHS_A):
+    w = w_hist_a[e - 1]
+    ax.scatter(x_train, y_train, s=8, alpha=0.4, label="Training data")
+    ax.plot(x_line, w[0] + w[1] * x_line, "r", lw=2, label="Fit")
+    ax.set_title(f"Epoch {e}\ny = {w[0]:.2f} + {w[1]:.2f}x\n"
+                 f"valid MSE = {mse(w, x_valid, y_valid):.3f}", fontsize=9)
+    ax.set_xlabel("x")
+    ax.grid(alpha=0.3)
+axes[0].set_ylabel("y")
+axes[3].set_ylabel("y")
+axes[0].legend(fontsize=8, loc="upper left")
+plt.tight_layout()
+plt.savefig(os.path.join(FIG_DIR, "c_fit_evolution_step_1e-6.png"), dpi=200)
+plt.show()
